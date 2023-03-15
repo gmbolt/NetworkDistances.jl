@@ -1,3 +1,5 @@
+using Pkg
+Pkg.activate(Base.current_project())
 using NetworkDistances
 using Documenter
 
@@ -12,14 +14,14 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://gmbolt.github.io/NetworkDistances.jl",
         edit_link="master",
-        assets=String[],
+        assets=String[]
     ),
     pages=[
         "Home" => "index.md",
-    ],
+    ]
 )
 
 deploydocs(;
     repo="github.com/gmbolt/NetworkDistances.jl",
-    devbranch="master",
+    devbranch="master"
 )
