@@ -1,4 +1,4 @@
-module StructuredDistances
+module NetworkDistances
 
 using Distances
 
