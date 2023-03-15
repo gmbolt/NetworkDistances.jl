@@ -1,5 +1,3 @@
-using Pkg
-Pkg.activate(Base.current_project())
 using NetworkDistances
 using Documenter
 
