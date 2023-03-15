@@ -41,7 +41,7 @@ jobs:
           files: lcov.info
   docs:
     name: Documentation
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: write
       statuses: write
