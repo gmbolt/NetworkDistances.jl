@@ -2,5 +2,8 @@ using NetworkDistances
 using Test
 
 @testset "NetworkDistances.jl" begin
-    # Write your tests here.
+
+    include("distances/multisets/matching_distances_test.jl")
+
+
 end
