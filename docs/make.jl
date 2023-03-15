@@ -21,5 +21,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/gmbolt/NetworkDistances.jl",
-    devbranch="master"
+    devbranch="main"
 )
