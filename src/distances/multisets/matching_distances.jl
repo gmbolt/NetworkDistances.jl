@@ -7,10 +7,37 @@ export MinDistMatchingDistance, MinDistMatchDist
 export AvgSizeMatchingDistance, AvgSizeMatchDist
 export get_cost_matrix_dynamic, get_cost_matrix_fixed
 
+abstract type PenaltyFunction end
 
-struct MatchingDistance{T<:SemiMetric} <: SemiMetric
-    ground_dist::T
+struct FixedPenalty
+    rho::Float32
 end
+
+(penalty::FixedPenalty)(x::Vector{Int}) = penalty.rho
+
+struct DistancePenalty{T<:SemiMetric}
+    d::T
+end
+
+(penalty::DistancePenalty)(x::Vector{Int}) = penalty.d(x, nothing)
+
+struct SizePenalty end
+
+(penalty::DistancePenalty)(x::Vector{Int}) = length(x)
+
+struct ParametricPenalty
+    alpha::Float32
+    delta::Float32
+end
+
+(penalty::ParametricPenalty)(x::Vector{Int}) = penalty.delta * length(x) - penalty.alpha * log(length(x))
+
+
+struct MatchingDistance{T<:SemiMetric,S<:PenatlyFunction} <: SemiMetric
+    ground_dist::T
+    penalty::S
+end
+
 
 const MatchDist = MatchingDistance
 
@@ -25,7 +52,7 @@ function get_cost_matrix_dynamic(
         return pairwise_inbounds(d.ground_dist, X, Y)
     else
         C = pairwise_inbounds(d.ground_dist, X, Y)
-        null_dists = [d.ground_dist(nothing, p) for p in X]
+        null_dists = [d.penalty(p) for p in X]
         size_diff = length(X) - length(Y)
         return [C [x for x ∈ null_dists, j = 1:size_diff]]
     end
@@ -45,7 +72,7 @@ function get_cost_matrix_fixed(
         return pairwise_inbounds(d.ground_dist, X, Y)
     else
         C = pairwise_inbounds(d.ground_dist, X, Y)
-        penalty_vec = [d.ground_dist(nothing, p) for p in X]
+        penalty_vec = [d.penalty(p) for p in X]
         size_diff = length(X) - length(Y)
         return [C [x for x ∈ penalty_vec, j = 1:size_diff]]
     end
