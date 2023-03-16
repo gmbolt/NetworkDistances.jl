@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/gmbolt/NetworkDistances.jl",
-    devbranch="main"
+    repo="github.com/gmbolt/NetworkDistances.jl"
+    # devbranch="main"
 )
