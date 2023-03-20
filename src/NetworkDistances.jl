@@ -1,4 +1,6 @@
 module NetworkDistances
+using PythonOT
+PythonOT.__init__()
 
 using Distances
 
