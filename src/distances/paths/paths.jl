@@ -106,7 +106,7 @@ end
 function (dist::Union{LCS,FastLCS})(X::Vector{T}, Y::Nothing)::Float64 where {T}
     return length(X)
 end
-function (dist::Union{LCS,FastLCS})(X::Nothing, Y::Nothing)::Float64 where {T}
+function (dist::Union{LCS,FastLCS})(X::Nothing, Y::Nothing)::Float64
     return 0.0
 end
 
@@ -237,7 +237,7 @@ end
 function (dist::Union{LSP,FastLSP})(X::Vector{T}, Y::Nothing)::Float64 where {T}
     return length(X)
 end
-function (dist::Union{LSP,FastLSP})(X::Nothing, Y::Nothing) where {T}
+function (dist::Union{LSP,FastLSP})(X::Nothing, Y::Nothing)
     return 0.0
 end
 

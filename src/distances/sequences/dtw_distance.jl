@@ -40,7 +40,7 @@ function (d::DTW)(
 
 end
 (d::DTW)(S1::Vector{T}, S2::Nothing) where {T} = d(S2, S1)
-(d::DTW)(S1::Nothing, S2::Nothing) where {T} = 0.0
+(d::DTW)(S1::Nothing, S2::Nothing) = 0.0
 
 
 function print_info(
@@ -137,7 +137,7 @@ function (d::FixPenDTW)(
 
 end
 (d::FixPenDTW)(S1::Vector{T}, S2::Nothing) where {T} = d(S2, S1)
-(d::FixPenDTW)(S1::Nothing, S2::Nothing) where {T} = 0.0#
+(d::FixPenDTW)(S1::Nothing, S2::Nothing) = 0.0#
 
 
 function print_info(

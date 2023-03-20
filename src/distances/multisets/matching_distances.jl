@@ -232,7 +232,7 @@ end
 function (d::Union{MatchDist,FastMatchDist})(X::Vector{T}, Y::Nothing)::Float64 where {T}
     return d(Y, X)
 end
-function (d::Union{MatchDist,FastMatchDist})(X::Nothing, Y::Nothing)::Float64 where {T}
+function (d::Union{MatchDist,FastMatchDist})(X::Nothing, Y::Nothing)::Float64
     return 0.0
 end
 
@@ -301,7 +301,7 @@ end
 function (d::AvgSizeMatchDist)(X::Vector{T}, Y::Nothing)::Float64 where {T}
     d(Y, X)
 end
-function (d::AvgSizeMatchDist)(X::Nothing, Y::Nothing)::Float64 where {T}
+function (d::AvgSizeMatchDist)(X::Nothing, Y::Nothing)::Float64
     return 0.0
 end
 

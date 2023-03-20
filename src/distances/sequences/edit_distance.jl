@@ -95,7 +95,7 @@ end
 function (d::Union{EditDist,FastEditDist})(X::Vector{T}, Y::Nothing)::Float64 where {T}
     return d(Y, X)
 end
-function (d::Union{EditDist,FastEditDist})(X::Nothing, Y::Nothing)::Float64 where {T}
+function (d::Union{EditDist,FastEditDist})(X::Nothing, Y::Nothing)::Float64
     return 0.0
 end
 
@@ -286,7 +286,7 @@ end
 function (d::Union{FixPenEditDist,FastFixPenEditDist})(X::Vector{T}, Y::Nothing)::Float64 where {T}
     d(Y, X)
 end
-function (d::Union{FixPenEditDist,FastFixPenEditDist})(X::Nothing, Y::Nothing)::Float64 where {T}
+function (d::Union{FixPenEditDist,FastFixPenEditDist})(X::Nothing, Y::Nothing)::Float64
     return 0.0
 end
 
