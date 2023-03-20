@@ -1,11 +1,5 @@
 module NetworkDistances
-using PythonOT, PyCall
-
-const pot = PyCall.PyNULL()
-
-function __init__()
-    return copy!(pot, PyCall.pyimport_conda("ot", "pot", "conda-forge"))
-end
+using PythonOT
 
 # Write your package code here.
 
