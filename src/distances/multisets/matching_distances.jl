@@ -157,7 +157,10 @@ struct FastMatchingDistance{T<:SemiMetric,S<:PenaltyFunction} <: CompleteMatchin
     end
 end
 
+
 const FastMatchDist = FastMatchingDistance
+FastMatchingDistance(d::SemiMetric, K::Int) = FastMatchingDistance(d, DistancePenalty(d), K)
+
 
 Base.show(io::IO, d::FastMatchingDistance{T,S}) where {T<:SemiMetric,S<:PenaltyFunction} = print(io, "FastMatchingDistance{$(T),$(S),$(size(d.C,1))}")
 
