@@ -42,11 +42,11 @@ jobs:
           Conda.add("nomkl") # Work around https://github.com/JuliaPy/PyPlot.jl/issues/315
           Conda.add("pot"; channel="conda-forge")
           # Workaround for https://github.com/JuliaPy/PyCall.jl/issues/999: Use conda's version of the library
-          if !Sys.iswindows()
-            open(ENV["GITHUB_ENV"], "a") do io
-              println(io, "LD_PRELOAD=", joinpath(Conda.ROOTENV, "lib", "libstdc++.so.6"))
-            end
-          end
+          # if !Sys.iswindows()
+          #   open(ENV["GITHUB_ENV"], "a") do io
+          #     println(io, "LD_PRELOAD=", joinpath(Conda.ROOTENV, "lib", "libstdc++.so.6"))
+          #   end
+          # end
         shell: julia --project=. --color=yes {0}
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
