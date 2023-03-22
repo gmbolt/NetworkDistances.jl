@@ -43,7 +43,26 @@ function get_cost_matrix_fixed(
     return NotImplementedError("Method get_cost_matrix_fixed() not implemented for this distance.")
 end
 
+abstract type MatchingOptimiser end
+struct ContinousRelaxation <: MatchingOptimiser end
+struct HungarianAlgorithm <: MatchingOptimiser end
+
+function eval_distance(optimiser::ContinousRelaxation, cost_matrix::AbstractMatrix)::Float64
+    x = ones(size(cost_matrix, 1))
+    return PythonOT.emd2(
+        x, x, cost_matrix
+    )
+end
+
+function eval_distance(optimiser::HungarianAlgorithm, cost_matrix::AbstractMatrix)::Float64
+    assignment, cost = hungarian(cost_matrix)
+    return cost
+end
+
 abstract type CompleteMatchingDistance <: AbstractMatchingDistance end
+
+# We will default to continuous relaxation for evaluation of distances
+get_optimiser(d::CompleteMatchingDistance) = ContinousRelaxation()
 
 abstract type PenaltyFunction end
 
@@ -99,13 +118,17 @@ Base.show(io::IO, p::ParametricPenalty) = print(
 )
 
 
-struct MatchingDistance{T<:SemiMetric,S<:PenaltyFunction} <: CompleteMatchingDistance
+struct MatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
     penalty::S
+    optimiser::R
 end
 
-# For backwards compatability
-MatchingDistance(d::SemiMetric) = MatchingDistance(d, DistancePenalty(d))
+# Optimier query function
+get_optimiser(d::MatchingDistance) = d.optimiser
+# Constructors
+MatchingDistance(d::SemiMetric, penalty::PenaltyFunction; optimiser::MatchingOptimiser=ContinousRelaxation()) = MatchingDistance(d, penalty, optimiser)
+MatchingDistance(d::SemiMetric; optimiser::MatchingOptimiser=ContinousRelaxation()) = MatchingDistance(d, DistancePenalty(d), optimiser)
 
 const MatchDist = MatchingDistance
 
@@ -148,21 +171,22 @@ function get_cost_matrix_fixed(
 end
 
 
-struct FastMatchingDistance{T<:SemiMetric,S<:PenaltyFunction} <: CompleteMatchingDistance
+struct FastMatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
     penalty::S
+    optimiser::R
     C::Matrix{Float64}
-    function FastMatchingDistance(ground_dist::T, penalty::S, K::Int) where {T<:SemiMetric,S<:PenaltyFunction}
-        new{T,S}(ground_dist, penalty, zeros(K, K))
+    function FastMatchingDistance(ground_dist::T, penalty::S, optimiser::R, K::Int) where {T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser}
+        new{T,S,R}(ground_dist, penalty, optimiser, zeros(K, K))
     end
 end
 
 
 const FastMatchDist = FastMatchingDistance
-FastMatchingDistance(d::SemiMetric, K::Int) = FastMatchingDistance(d, DistancePenalty(d), K)
+FastMatchingDistance(d::SemiMetric, penalty::PenaltyFunction, K::Int; optimiser::MatchingOptimiser=ContinousRelaxation()) = FastMatchingDistance(d, penalty, optimiser, K)
+FastMatchingDistance(d::SemiMetric, K::Int; optimiser::MatchingOptimiser=ContinousRelaxation()) = FastMatchingDistance(d, DistancePenalty(d), optimiser, K)
 
-
-Base.show(io::IO, d::FastMatchingDistance{T,S}) where {T<:SemiMetric,S<:PenaltyFunction} = print(io, "FastMatchingDistance{$(T),$(S),$(size(d.C,1))}")
+Base.show(io::IO, d::FastMatchingDistance{T,S,R}) where {T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser} = print(io, "FastMatchingDistance{$(T),$(S),$(R),$(size(d.C,1))}")
 
 function get_cost_matrix_dynamic(
     d::FastMatchingDistance,

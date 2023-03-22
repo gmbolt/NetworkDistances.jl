@@ -15,12 +15,13 @@ function (d::T where {T<:CompleteMatchingDistance})(
     X::Vector{S}, Y::Vector{S}
 ) where {S}
     C = get_cost_matrix_dynamic(d, X, Y)
-    # x = ones(size(C, 1))
-    # out = PythonOT.emd2(
-    #     x, x, C
-    # )
-    assignment, cost = hungarian(C)
-    return cost
+    return eval_distance(get_optimiser(d), C)
+    # # x = ones(size(C, 1))
+    # # out = PythonOT.emd2(
+    # #     x, x, C
+    # # )
+    # assignment, cost = hungarian(C)
+    # return cost
 end
 
 function Base.show(io::IO, d_gen::General{T}) where {T<:CompleteMatchingDistance}
