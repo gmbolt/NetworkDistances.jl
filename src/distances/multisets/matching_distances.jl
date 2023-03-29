@@ -70,13 +70,13 @@ struct FixedPenalty <: PenaltyFunction
     rho::Float64
 end
 
-(penalty::FixedPenalty)(x::Vector{Int}) = penalty.rho
+(penalty::FixedPenalty)(x::Vector{T}) where {T} = penalty.rho
 
 Base.show(io::IO, p::S) where {S<:FixedPenalty} = print(io, "$(S)(ρ=$(p.rho))")
 
 struct SizePenalty <: PenaltyFunction end
 
-(penalty::SizePenalty)(x::Vector{Int}) = length(x)
+(penalty::SizePenalty)(x::Vector{T}) where {T} = length(x)
 
 Base.show(io::IO, p::S) where {S<:SizePenalty} = print(io, "$(S)")
 
@@ -84,7 +84,7 @@ struct DistancePenalty{T<:SemiMetric} <: PenaltyFunction
     d::T
 end
 
-(penalty::DistancePenalty)(x::Vector{Int}) = penalty.d(x, nothing)
+(penalty::DistancePenalty)(x::Vector{T}) where {T} = penalty.d(x, nothing)
 
 Base.show(io::IO, p::DistancePenalty{S}) where {S<:SemiMetric} = print(
     io, "DistancePenalty{$(S)}"
@@ -99,7 +99,7 @@ struct ParametricPenalty <: PenaltyFunction
     end
 end
 
-function (penalty::ParametricPenalty)(x::Vector{Int})
+function (penalty::ParametricPenalty)(x::Vector{T}) where {T}
     x_len = length(x)
     loc, scale, interc = (penalty.loc, penalty.scale, penalty.interc)
     return (
