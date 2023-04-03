@@ -15,7 +15,7 @@ function (d::T where {T<:CompleteMatchingDistance})(
     X::Vector{S}, Y::Vector{S}
 ) where {S}
     C = get_cost_matrix_dynamic(d, X, Y)
-    return eval_distance(get_optimiser(d), C)
+    return eval_distance(d.optimiser, C)
 end
 
 function Base.show(io::IO, d_gen::General{T}) where {T<:CompleteMatchingDistance}

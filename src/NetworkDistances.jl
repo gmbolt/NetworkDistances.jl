@@ -4,6 +4,7 @@ using PythonOT
 # Write your package code here.
 
 include("utils.jl")
+include("exceptions.jl")
 include("distances/helpers.jl")
 
 # Path distances 
@@ -13,9 +14,9 @@ include("distances/paths/paths.jl")
 include("distances/graphs/graph_distances.jl")
 
 # Multiset distances
-include("distances/multisets/matching_distances.jl")
-include("distances/multisets/matching_distances_generalised.jl")
-include("distances/multisets/matching_distances_eval.jl")
+include("distances/multisets/matching/matching_distances_complete.jl")
+include("distances/multisets/matching/matching_distances_generalised.jl")
+include("distances/multisets/matching/matching_distances_eval.jl")
 include("distances/multisets/earth_movers_distance.jl")
 
 # Sequence distances

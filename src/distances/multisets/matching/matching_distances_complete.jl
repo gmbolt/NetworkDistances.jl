@@ -9,10 +9,14 @@ export get_cost_matrix_dynamic, get_cost_matrix_fixed
 
 export FixedPenalty, SizePenalty, DistancePenalty, ParametricPenalty
 
+# Load penalties and optimisers 
+include("penalties.jl")
+include("optimisers.jl")
+
+# Absract type for matching distances 
 abstract type AbstractMatchingDistance <: SemiMetric end
-struct NotImplementedError <: Exception
-    msg::String
-end
+# Complete matching distances a sub-type thereof
+abstract type CompleteMatchingDistance <: AbstractMatchingDistance end
 
 """
     get_cost_matrix_dynamic(d::AbstractMatchingDistance, X, Y)
@@ -43,81 +47,6 @@ function get_cost_matrix_fixed(
     return NotImplementedError("Method get_cost_matrix_fixed() not implemented for this distance.")
 end
 
-abstract type MatchingOptimiser end
-struct ContinousRelaxation <: MatchingOptimiser end
-struct HungarianAlgorithm <: MatchingOptimiser end
-
-function eval_distance(optimiser::ContinousRelaxation, cost_matrix::AbstractMatrix)::Float64
-    x = ones(size(cost_matrix, 1))
-    return PythonOT.emd2(
-        x, x, cost_matrix
-    )
-end
-
-function eval_distance(optimiser::HungarianAlgorithm, cost_matrix::AbstractMatrix)::Float64
-    assignment, cost = hungarian(cost_matrix)
-    return cost
-end
-
-abstract type CompleteMatchingDistance <: AbstractMatchingDistance end
-
-# We will default to continuous relaxation for evaluation of distances
-get_optimiser(d::CompleteMatchingDistance) = ContinousRelaxation()
-
-abstract type PenaltyFunction end
-
-struct FixedPenalty <: PenaltyFunction
-    rho::Float64
-end
-
-(penalty::FixedPenalty)(x::Vector{T}) where {T} = penalty.rho
-
-Base.show(io::IO, p::S) where {S<:FixedPenalty} = print(io, "$(S)(ρ=$(p.rho))")
-
-struct SizePenalty <: PenaltyFunction end
-
-(penalty::SizePenalty)(x::Vector{T}) where {T} = length(x)
-
-Base.show(io::IO, p::S) where {S<:SizePenalty} = print(io, "$(S)")
-
-struct DistancePenalty{T<:SemiMetric} <: PenaltyFunction
-    d::T
-end
-
-(penalty::DistancePenalty)(x::Vector{T}) where {T} = penalty.d(x, nothing)
-
-Base.show(io::IO, p::DistancePenalty{S}) where {S<:SemiMetric} = print(
-    io, "DistancePenalty{$(S)}"
-)
-
-struct ParametricPenalty <: PenaltyFunction
-    loc::Float64
-    scale::Float64
-    interc::Float64
-    function ParametricPenalty(loc::Real, scale::Real; interc::Real=0.0)
-        new(loc, scale, interc)
-    end
-end
-
-function (penalty::ParametricPenalty)(x::Vector{T}) where {T}
-    x_len = length(x)
-    loc, scale, interc = (penalty.loc, penalty.scale, penalty.interc)
-    return (
-        scale * x_len
-        +
-        scale * xlogx(loc)
-        -
-        scale * loc * (log(x_len) + 1)
-        +
-        interc
-    )
-end
-
-Base.show(io::IO, p::ParametricPenalty) = print(
-    io, "ParametricPenalty(loc=$(p.loc),scale=$(p.scale))"
-)
-
-
 struct MatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
     penalty::S
@@ -127,8 +56,8 @@ end
 # Optimier query function
 get_optimiser(d::MatchingDistance) = d.optimiser
 # Constructors
-MatchingDistance(d::SemiMetric, penalty::PenaltyFunction; optimiser::MatchingOptimiser=ContinousRelaxation()) = MatchingDistance(d, penalty, optimiser)
-MatchingDistance(d::SemiMetric; optimiser::MatchingOptimiser=ContinousRelaxation()) = MatchingDistance(d, DistancePenalty(d), optimiser)
+MatchingDistance(d::SemiMetric, penalty::PenaltyFunction; optimiser::String="hungarian") = MatchingDistance(d, penalty, get_optimiser_instance(optimiser))
+MatchingDistance(d::SemiMetric; optimiser::String="hungarian") = MatchingDistance(d, DistancePenalty(d), get_optimiser_instance(optimiser))
 
 const MatchDist = MatchingDistance
 
@@ -181,10 +110,9 @@ struct FastMatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimise
     end
 end
 
-
 const FastMatchDist = FastMatchingDistance
-FastMatchingDistance(d::SemiMetric, penalty::PenaltyFunction, K::Int; optimiser::MatchingOptimiser=ContinousRelaxation()) = FastMatchingDistance(d, penalty, optimiser, K)
-FastMatchingDistance(d::SemiMetric, K::Int; optimiser::MatchingOptimiser=ContinousRelaxation()) = FastMatchingDistance(d, DistancePenalty(d), optimiser, K)
+FastMatchingDistance(d::SemiMetric, penalty::PenaltyFunction, K::Int; optimiser::String="hungarian") = FastMatchingDistance(d, penalty, get_optimiser_instance(optimiser), K)
+FastMatchingDistance(d::SemiMetric, K::Int; optimiser::String="hungarian") = FastMatchingDistance(d, DistancePenalty(d), get_optimiser_instance(optimiser), K)
 
 Base.show(io::IO, d::FastMatchingDistance{T,S,R}) where {T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser} = print(io, "FastMatchingDistance{$(T),$(S),$(R),$(size(d.C,1))}")
 
@@ -266,10 +194,12 @@ const FixPenMatchDist{T} = FixedPenaltyMatchingDistance{T} where {T<:SemiMetric}
 FixedPenaltyMatchingDistance(d::SemiMetric, penalty::Real) = MatchDist(d, FixedPenalty(penalty))
 FixPenMatchDist(args...) = FixedPenaltyMatchingDistance(args...)
 
-struct AvgSizeMatchingDistance{T<:SemiMetric} <: CompleteMatchingDistance
+struct AvgSizeMatchingDistance{T<:SemiMetric,S<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
     penalty::Float64
+    optimiser::S
 end
+AvgSizeMatchingDistance(d::SemiMetric, penalty::Float64; optimiser::String="hungarian") = AvgSizeMatchingDistance(d, penalty, get_optimiser_instance(optimiser))
 
 const AvgSizeMatchDist = AvgSizeMatchingDistance
 
@@ -329,12 +259,13 @@ function (d::AvgSizeMatchDist)(X::Nothing, Y::Nothing)::Float64
     return 0.0
 end
 
-struct MinDistMatchingDistance{T<:SemiMetric} <: CompleteMatchingDistance
+struct MinDistMatchingDistance{T<:SemiMetric,S<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
-    penalty::Float64
+    optimiser::S
 end
+MinDistMatchingDistance(d::SemiMetric; optimiser::String="hungarian") = MinDistMatchingDistance(d, get_optimiser_instance(optimiser))
 
-const MinDistMatchDist{T} = MinDistMatchingDistance where {T}
+const MinDistMatchDist{T,S} = MinDistMatchingDistance where {T,S}
 
 Base.show(io::IO, d::MinDistMatchDist) = print(io, "$(typeof(d))(ρ=$(d.penalty))")
 

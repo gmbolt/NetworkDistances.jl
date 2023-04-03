@@ -2,15 +2,12 @@ using Distances
 export General
 export get_info, print_info, get_info_deep
 
-# General Matching
-# ----------------
+# General matching distances 
+# --------------------------
 
-# * All matching distances find optimal COMPLETE matching by default 
-# * To instead find general optimal matching one can construct the generalised distance 
+# Idea here is any complete matching can be used to construct a general one. 
 
-# Define type union for all these complete matching distances 
-# const CompleteMatchingDistance = Union{MatchingDistance,FastMatchingDistance,AvgSizeMatchingDistance,MinDistMatchingDistance}
-
+# Done via parametric typing...
 struct General{T<:CompleteMatchingDistance} <: AbstractMatchingDistance
     d::T
 end
