@@ -1,3 +1,5 @@
+export FixedPenalty, SizePenalty, DistancePenalty, ParametricPenalty
+
 abstract type PenaltyFunction end
 
 struct FixedPenalty <: PenaltyFunction

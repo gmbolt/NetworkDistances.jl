@@ -7,8 +7,6 @@ export MinDistMatchingDistance, MinDistMatchDist
 export AvgSizeMatchingDistance, AvgSizeMatchDist
 export get_cost_matrix_dynamic, get_cost_matrix_fixed
 
-export FixedPenalty, SizePenalty, DistancePenalty, ParametricPenalty
-
 # Load penalties and optimisers 
 include("penalties.jl")
 include("optimisers.jl")
