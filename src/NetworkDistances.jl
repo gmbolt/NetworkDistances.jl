@@ -3,9 +3,9 @@ using PythonOT
 
 # Write your package code here.
 
-include("utils.jl")
-include("exceptions.jl")
-include("distances/helpers.jl")
+include("utils/utils.jl")
+include("utils/exceptions.jl")
+include("utils/pairwise.jl")
 
 # Path distances 
 include("distances/paths/paths.jl")
@@ -32,8 +32,9 @@ include("distances/set_distances.jl")
 # Normalised distances (normalises any metric)
 include("distances/normalised.jl")
 
-# Plotting recipies 
-include("plot_recipes/seq_plot.jl")
-include("plot_recipes/pathseq_plot.jl")
+# Summaries 
+include("summaries/seq_plot.jl")
+include("summaries/pathseq_plot.jl")
+include("summaries/get_info.jl")
 
 end
