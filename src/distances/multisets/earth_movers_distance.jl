@@ -67,6 +67,10 @@ function (d::EMD)(X::Vector{T}, Y::Vector{T}) where {T}
     )
 end
 
+(d::EMD)(X::Vector{T}, Y::Nothing) where {T} = mean(d.ground_dist(xi, nothing) for xi in X)
+(d::EMD)(X::Nothing, Y::Vector{T}) where {T} = d(Y, X)
+
+
 function get_info(
     d::EMD,
     X::Vector{T}, Y::Vector{T}
