@@ -1,4 +1,4 @@
-using PythonOT, Hungarian
+using Hungarian
 
 # Distance evaluation 
 # -------------------

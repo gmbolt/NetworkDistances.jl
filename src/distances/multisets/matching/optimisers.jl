@@ -4,7 +4,7 @@ struct HungarianAlgorithm <: MatchingOptimiser end
 
 function eval_distance(optimiser::ContinousRelaxation, cost_matrix::AbstractMatrix)::Float64
     x = ones(size(cost_matrix, 1))
-    return PythonOT.emd2(
+    return emd2(
         x, x, cost_matrix
     )
 end

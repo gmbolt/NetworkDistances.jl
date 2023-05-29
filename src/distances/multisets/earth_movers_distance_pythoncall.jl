@@ -1,34 +1,7 @@
-using StatsBase, PythonOT, Distances
+using StatsBase, Distances
 
 export EarthMoversDistance, EMD
 export check_trans_plan, get_info
-
-
-"""
-Wrapper for ot.emd() method of POT python package.
-"""
-function emd(a::AbstractVector, b::AbstractVector, C::AbstractMatrix)
-    return pyconvert(
-        Matrix{Float64},
-        ot[].emd(
-            np[].array(a), np[].array(b),
-            np[].array(C)
-        )
-    )
-end
-
-"""
-Wrapper for ot.emd2() method of POT python package.
-"""
-function emd2(a::AbstractVector, b::AbstractVector, C::AbstractMatrix)
-    return pyconvert(
-        Float64,
-        ot[].emd2(
-            np[].array(a), np[].array(b),
-            np[].array(C)
-        )
-    )
-end
 
 # Optimal Transport (OT) Distances 
 # --------------------------------
