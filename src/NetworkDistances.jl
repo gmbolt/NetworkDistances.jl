@@ -1,5 +1,17 @@
 module NetworkDistances
-using PythonOT
+using PythonOT, PythonCall
+
+# References for python modules 
+const np = Ref{Py}()    # Numpy
+const ot = Ref{Py}()    # Python optimal transport
+
+# This is called when module is loaded 
+# (loads required python modules into refs, as per recommendations of PythonCall.jl)
+function __init__()
+    np[] = pyimport("numpy")
+    ot[] = pyimport("ot")
+end
+
 
 # Write your package code here.
 
@@ -17,7 +29,7 @@ include("distances/graphs/graph_distances.jl")
 include("distances/multisets/matching/matching_distances_complete.jl")
 include("distances/multisets/matching/matching_distances_generalised.jl")
 include("distances/multisets/matching/matching_distances_eval.jl")
-include("distances/multisets/earth_movers_distance.jl")
+include("distances/multisets/earth_movers_distance_pythoncall.jl")
 
 # Sequence distances
 include("distances/sequences/edit_distance.jl")
