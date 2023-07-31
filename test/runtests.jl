@@ -6,11 +6,7 @@ using Test, NetworkDistances
     println(readdir())
     println(readdir("distances/"))
     include("matching_distances_test.jl")
-    include(joinpath(
-        "distances",
-        "multisets",
-        "matching_distances_test.jl"
-    ))
+    include("distances/multisets_new/matching_distances_test.jl")
 
 
 
