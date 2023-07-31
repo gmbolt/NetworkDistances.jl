@@ -1,4 +1,4 @@
-using StatsBase, PythonOT, Distances
+using StatsBase, Distances
 
 export EarthMoversDistance, EMD
 export check_trans_plan, get_info
@@ -36,7 +36,7 @@ function check_trans_plan(d::EMD, X::Vector{T}, Y::Vector{T}) where {T}
         end
     end
 
-    TransPlan::Array{Float64,2} = PythonOT.emd(
+    TransPlan::Array{Float64,2} = emd(
         collect(values(a)),
         collect(values(b)), C
     )
@@ -61,7 +61,9 @@ function (d::EMD)(X::Vector{T}, Y::Vector{T}) where {T}
             C[i, j] = d.ground_dist(val_a, val_b)
         end
     end
-    return PythonOT.emd2(
+    # Function emd2() defined in NetworkDistances.jl - uses calls of 
+    # python functions via PythonCall.jl
+    return emd2(
         collect(values(a)),
         collect(values(b)), C
     )
@@ -87,7 +89,7 @@ function get_info(
         end
     end
 
-    TransPlan = PythonOT.emd(
+    TransPlan = emd(
         collect(values(a)),
         collect(values(b)), C
     )

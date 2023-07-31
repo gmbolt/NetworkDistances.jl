@@ -8,3 +8,4 @@ dev
 /deps/build.log
 /deps/Manifest.toml
 .CondaPkg/
+archive/
