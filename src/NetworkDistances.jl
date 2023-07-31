@@ -39,9 +39,7 @@ function emd2(a::AbstractVector, b::AbstractVector, C::AbstractMatrix)
     )
 end
 
-
-# Write your package code here.
-
+# Utilities 
 include("utils/utils.jl")
 include("utils/exceptions.jl")
 include("utils/pairwise.jl")
