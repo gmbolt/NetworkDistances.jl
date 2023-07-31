@@ -2,17 +2,25 @@ module NetworkDistances
 using PythonCall
 
 # References for python modules 
+
+# We use PythonCall.jl to allow use of the Python Optimal Transport (POT) (https://pythonot.github.io/)
+# library for evaluating the earth mover's distance. Doing so within a Juli module/package
+# requires first loading the necessary python modules/packages. This is done 
+# as follows (following recommendations made in documentation for PythonCall.jl)...
+
+# First define some references 
 const np = Ref{Py}()    # Numpy
 const ot = Ref{Py}()    # Python optimal transport
 
-# This is called when module is loaded 
-# (loads required python modules into refs, as per recommendations of PythonCall.jl)
+# Now using __init__() we can load required python modules into refs when 
+# this Julia module is first loaded, as per recommendations of PythonCall.jl...
 function __init__()
     np[] = pyimport("numpy")
     ot[] = pyimport("ot")
 end
 
-
+# With these modules imported and assigned to references, we can define some 
+# wrappers to call the desired POT functions....
 """
 Wrapper for ot.emd() method of POT python package.
 """
@@ -54,7 +62,7 @@ include("distances/graphs/graph_distances.jl")
 include("distances/multisets/matching/matching_distances_complete.jl")
 include("distances/multisets/matching/matching_distances_generalised.jl")
 include("distances/multisets/matching/matching_distances_eval.jl")
-include("distances/multisets/earth_movers_distance_pythoncall.jl")
+include("distances/multisets/earth_movers_distance.jl")
 
 # Sequence distances
 include("distances/sequences/edit_distance.jl")
