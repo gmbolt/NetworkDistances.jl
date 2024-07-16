@@ -1,5 +1,5 @@
 using LinearAlgebra, Distances
-export Diffusion
+export Diffusion, Hamming
 export hamming_dist, jaccard_dist, diffusion_dist
 
 # Here we extend the Hamming and Jaccard distances defined in Distances.jl
