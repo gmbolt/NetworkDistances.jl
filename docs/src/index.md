@@ -1,15 +1,12 @@
-```@meta
-CurrentModule = NetworkDistances
+
+# NetworkDistances.jl Documentation
+
+This is the documentation for the NetworkDistances.jl package.
+
+## Contents
+
+```@contents
+Pages = ["api.md"]
 ```
 
-# NetworkDistances
 
-Documentation for [NetworkDistances](https://github.com/gmbolt/NetworkDistances.jl).
-
-
-```@index
-```
-
-```@autodocs
-Modules = [NetworkDistances]
-```

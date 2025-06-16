@@ -2,6 +2,21 @@ using RecipesBase
 export PathSeqPlot, NoisePlot 
 export get_entry_xlocs
 
+"""
+    get_entry_xlocs(lens::Vector{Int}, width, entrymargin, pathmargin; origin=0.0)
+
+Calculates the x-coordinates for entries in a sequence of paths for plotting purposes.
+
+# Arguments
+- `lens::Vector{Int}`: A vector containing the lengths of individual paths.
+- `width`: The width of each entry.
+- `entrymargin`: The margin between entries within a path.
+- `pathmargin`: The margin between different paths.
+- `origin`: The starting x-coordinate (default: 0.0).
+
+# Returns
+- `Vector{Float64}`: A vector of x-coordinates for each entry.
+"""
 function get_entry_xlocs(
     lens::Vector{Int},
     width,
@@ -22,6 +37,19 @@ function get_entry_xlocs(
     return out
 end 
 
+"""
+    PathSeqPlot(obs; entrymargin=0.1, entryfontsize=20, pathmargin=0.5, entrycolor=:green, align=:center)
+
+Plots a sequence of paths, where each path is a sequence of observations.
+
+# Arguments
+- `obs`: The observations, typically a vector of vectors.
+- `entrymargin`: Margin between entries within a path (default: 0.1).
+- `entryfontsize`: Font size for annotations (default: 20).
+- `pathmargin`: Margin between different paths (default: 0.5).
+- `entrycolor`: Color of the entries (default: :green). Can be a single color or a vector of vectors for individual entry colors.
+- `align`: Alignment of the plot (:center, :left, or :right, default: :center).
+"""
 @userplot PathSeqPlot
 @recipe function f(
     h::PathSeqPlot; 
@@ -70,6 +98,21 @@ end
     end 
 end 
 
+"""
+    NoisePlot(obs, err; entrymargin=0.1, entryfontsize=20, stdcolor=:green, errcolor=:magenta, pathmargin=0.5, align=:center)
+
+Plots a sequence of paths with an indication of errors or noise.
+
+# Arguments
+- `obs`: The observations, typically a vector of vectors.
+- `err`: A boolean vector indicating error status for each observation.
+- `entrymargin`: Margin between entries within a path (default: 0.1).
+- `entryfontsize`: Font size for annotations (default: 20).
+- `stdcolor`: Color for standard (non-error) entries (default: :green).
+- `errcolor`: Color for error entries (default: :magenta).
+- `pathmargin`: Margin between different paths (default: 0.5).
+- `align`: Alignment of the plot (:center, :left, or :right, default: :center).
+"""
 @userplot NoisePlot
 @recipe function f(
     h::NoisePlot; 
@@ -113,4 +156,5 @@ end
         x_cords,y_cords
     end 
 end 
+
 

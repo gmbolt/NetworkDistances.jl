@@ -1,51 +1,19 @@
 module NetworkDistances
+
 using PythonCall
+using LinearAlgebra, Distances, StatsBase
 
 # References for python modules 
-
-# We use PythonCall.jl to allow use of the Python Optimal Transport (POT) (https://pythonot.github.io/)
-# library for evaluating the earth mover's distance. Doing so within a Juli module/package
-# requires first loading the necessary python modules/packages. This is done 
-# as follows (following recommendations made in documentation for PythonCall.jl)...
-
-# First define some references 
 const np = Ref{Py}()    # Numpy
 const ot = Ref{Py}()    # Python optimal transport
 
-# Now using __init__() we can load required python modules into refs when 
-# this Julia module is first loaded, as per recommendations of PythonCall.jl...
 function __init__()
     np[] = pyimport("numpy")
     ot[] = pyimport("ot")
 end
 
-# With these modules imported and assigned to references, we can define some 
-# wrappers to call the desired POT functions....
-"""
-Wrapper for ot.emd() method of POT python package.
-"""
-function emd(a::AbstractVector, b::AbstractVector, C::AbstractMatrix)
-    return pyconvert(
-        Matrix{Float64},
-        ot[].emd(
-            np[].array(a), np[].array(b),
-            np[].array(C)
-        )
-    )
-end
-
-"""
-Wrapper for ot.emd2() method of POT python package.
-"""
-function emd2(a::AbstractVector, b::AbstractVector, C::AbstractMatrix)
-    return pyconvert(
-        Float64,
-        ot[].emd2(
-            np[].array(a), np[].array(b),
-            np[].array(C)
-        )
-    )
-end
+# Python Optimal Transport (POT) wrappers
+include("py_wrappers.jl")
 
 # Utilities 
 include("utils/utils.jl")
@@ -81,5 +49,8 @@ include("distances/normalised.jl")
 include("summaries/seq_plot.jl")
 include("summaries/pathseq_plot.jl")
 include("summaries/get_info.jl")
+include("summaries/multigraph_plot.jl")
 
 end
+
+

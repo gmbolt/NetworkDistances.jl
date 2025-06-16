@@ -9,6 +9,19 @@ using Hungarian
 
 Base.show(io::IO, d::CompleteMatchingDistance) = print(io, typeof(d))
 
+"""
+    (d::T)(X::Vector{S}, Y::Vector{S}) where {T<:CompleteMatchingDistance, S}
+
+Computes the complete matching distance between two vectors `X` and `Y`.
+
+# Arguments
+- `d::T`: The complete matching distance metric.
+- `X::Vector{S}`: The first vector of elements.
+- `Y::Vector{S}`: The second vector of elements.
+
+# Returns
+- `Float64`: The computed matching distance.
+"""
 function (d::T where {T<:CompleteMatchingDistance})(
     X::Vector{S}, Y::Vector{S}
 ) where {S}
@@ -23,9 +36,24 @@ function Base.show(io::IO, d_gen::General{T}) where {T<:CompleteMatchingDistance
     print(io, "General{$(d_str)}")
 end
 
+"""
+    (d::General{T})(X::Vector{S}, Y::Vector{S}) where {T<:CompleteMatchingDistance, S}
+
+Computes the general matching distance between two vectors `X` and `Y`.
+
+# Arguments
+- `d::General{T}`: The general matching distance metric.
+- `X::Vector{S}`: The first vector of elements.
+- `Y::Vector{S}`: The second vector of elements.
+
+# Returns
+- `Float64`: The computed general matching distance.
+"""
 function (d::General{T} where {T<:CompleteMatchingDistance})(
     X::Vector{S}, Y::Vector{S}
 ) where {S}
     C = get_cost_matrix_fixed(d, X, Y)
     return hungarian(C)[2]
 end
+
+

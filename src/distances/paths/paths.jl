@@ -3,9 +3,25 @@ using Distances, InvertedIndices
 export LCS, FastLCS
 export print_info, get_info
 export LSP, FastLSP
+
 ## Interaction Distances
 
+"""
+    LCS
+
+Struct representing the Longest Common Subsequence (LCS) distance. This is a metric.
+"""
 struct LCS <: Metric end
+
+"""
+    FastLCS(K::Int)
+
+Struct representing an optimized version of the Longest Common Subsequence (LCS) distance.
+It pre-allocates arrays for performance.
+
+# Arguments
+- `K::Int`: The maximum expected length of the sequences, used for pre-allocation.
+"""
 struct FastLCS <: Metric
     curr_row::Vector{Int}
     prev_row::Vector{Int}
@@ -18,7 +34,18 @@ function Base.show(io::IO, d::FastLCS)
     print(io, "FastLCS{$(length(d.curr_row))}")
 end
 
-# LCS
+"""
+    (dist::LCS)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
+
+Computes the Longest Common Subsequence (LCS) distance between two vectors.
+
+# Arguments
+- `X::Vector{T}`: The first vector.
+- `Y::Vector{T}`: The second vector.
+
+# Returns
+- `Float64`: The LCS distance.
+"""
 function (dist::LCS)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
 
     n = length(X)
@@ -43,6 +70,18 @@ function (dist::LCS)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
     return currRow[end]
 end
 
+"""
+    (dist::LCS)(X::Tuple, Y::Tuple)::Float64
+
+Computes the Longest Common Subsequence (LCS) distance between two tuples.
+
+# Arguments
+- `X::Tuple`: The first tuple.
+- `Y::Tuple`: The second tuple.
+
+# Returns
+- `Float64`: The LCS distance.
+"""
 function (dist::LCS)(X::Tuple, Y::Tuple)::Float64
 
     n = length(X)
@@ -66,7 +105,18 @@ function (dist::LCS)(X::Tuple, Y::Tuple)::Float64
     return currRow[end]
 end
 
-# With storage 
+"""
+    (d::FastLCS)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
+
+Computes the Longest Common Subsequence (LCS) distance between two vectors using pre-allocated storage for performance.
+
+# Arguments
+- `X::Vector{T}`: The first vector.
+- `Y::Vector{T}`: The second vector.
+
+# Returns
+- `Float64`: The LCS distance.
+"""
 function (d::FastLCS)(
     X::Vector{T}, Y::Vector{T}
 )::Float64 where {T}
@@ -99,7 +149,13 @@ function (d::FastLCS)(
     return curr_row[m+1]
 end
 
-# Distances to the null 
+"""
+    (dist::Union{LCS,FastLCS})(X::Nothing, Y::Vector{T})::Float64 where {T}
+    (dist::Union{LCS,FastLCS})(X::Vector{T}, Y::Nothing)::Float64 where {T}
+    (dist::Union{LCS,FastLCS})(X::Nothing, Y::Nothing)::Float64
+
+Computes the LCS distance when one or both inputs are `nothing`.
+"""
 function (dist::Union{LCS,FastLCS})(X::Nothing, Y::Vector{T})::Float64 where {T}
     return length(Y)
 end
@@ -114,6 +170,20 @@ end
 
 # Get locations of longest common subseq (for visuals)
 
+"""
+    get_info(d::Union{LCS,FastLCS}, X::Vector{T}, Y::Vector{T}) where {T}
+
+Retrieves information about the Longest Common Subsequence (LCS) alignment, specifically the indices of common elements.
+
+# Arguments
+- `d::Union{LCS,FastLCS}`: The LCS distance metric.
+- `X::Vector{T}`: The first vector.
+- `Y::Vector{T}`: The second vector.
+
+# Returns
+- `Tuple{Vector{Bool}, Vector{Bool}}`: A tuple containing two boolean vectors, `indx` and `indy`,
+  indicating whether each element in `X` and `Y` respectively is part of the LCS.
+"""
 function get_info(
     d::Union{LCS,FastLCS},
     X::Vector{T}, Y::Vector{T}
@@ -155,8 +225,25 @@ end
 
 # Longest Common Subpath (LSP)
 
+"""
+    LSP
+
+Struct representing the Longest Common Subpath (LSP) distance. This is a metric.
+"""
 struct LSP <: Metric end
 
+"""
+    (dist::LSP)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
+
+Computes the Longest Common Subpath (LSP) distance between two vectors using a dynamic programming approach.
+
+# Arguments
+- `X::Vector{T}`: The first vector.
+- `Y::Vector{T}`: The second vector.
+
+# Returns
+- `Float64`: The LSP distance.
+"""
 function (dist::LSP)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
 
     # Here we consider a Dynamic programming approach
@@ -187,6 +274,15 @@ function (dist::LSP)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
     return n + m - 2 * z
 end
 
+"""
+    FastLSP(K::Int)
+
+Struct representing an optimized version of the Longest Common Subpath (LSP) distance.
+It pre-allocates arrays for performance.
+
+# Arguments
+- `K::Int`: The maximum expected length of the sequences, used for pre-allocation.
+"""
 struct FastLSP <: Metric
     curr_row::Vector{Float64}
     prev_row::Vector{Float64}
@@ -199,6 +295,18 @@ function Base.show(io::IO, d::FastLSP)
     print(io, "FastLSP{$(length(d.curr_row))}")
 end
 
+"""
+    (dist::FastLSP)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
+
+Computes the Longest Common Subpath (LSP) distance between two vectors using pre-allocated storage for performance.
+
+# Arguments
+- `X::Vector{T}`: The first vector.
+- `Y::Vector{T}`: The second vector.
+
+# Returns
+- `Float64`: The LSP distance.
+"""
 function (dist::FastLSP)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
     # Here we take a Dynamic programming approach, but use pre-allocated arrays for storage.
     n = length(X)
@@ -231,6 +339,13 @@ function (dist::FastLSP)(X::Vector{T}, Y::Vector{T})::Float64 where {T}
     return n + m - 2 * z
 end
 
+"""
+    (dist::Union{LSP,FastLSP})(X::Nothing, Y::Vector{T})::Float64 where {T}
+    (dist::Union{LSP,FastLSP})(X::Vector{T}, Y::Nothing)::Float64 where {T}
+    (dist::Union{LSP,FastLSP})(X::Nothing, Y::Nothing)
+
+Computes the LSP distance when one or both inputs are `nothing`.
+"""
 function (dist::Union{LSP,FastLSP})(X::Nothing, Y::Vector{T})::Float64 where {T}
     return length(Y)
 end
@@ -241,6 +356,20 @@ function (dist::Union{LSP,FastLSP})(X::Nothing, Y::Nothing)
     return 0.0
 end
 
+"""
+    get_info(d::Union{LSP,FastLSP}, X::Vector{T}, Y::Vector{T}) where {T}
+
+Retrieves information about the Longest Common Subpath (LSP) alignment, specifically the indices of common subpaths.
+
+# Arguments
+- `d::Union{LSP,FastLSP}`: The LSP distance metric.
+- `X::Vector{T}`: The first vector.
+- `Y::Vector{T}`: The second vector.
+
+# Returns
+- `Tuple{Vector{Bool}, Vector{Bool}}`: A tuple containing two boolean vectors, `indx` and `indy`,
+  indicating whether each element in `X` and `Y` respectively is part of the LSP.
+"""
 function get_info(
     d::Union{LSP,FastLSP},
     X::Vector{T}, Y::Vector{T}
@@ -275,6 +404,17 @@ function get_info(
     return indx, indy
 end
 
+"""
+    print_info(d::Union{LSP,FastLSP,LCS,FastLCS}, x::Vector{T}, y::Vector{T}) where {T}
+
+Prints information about the alignment of two sequences based on LCS or LSP distance.
+It indicates which elements are 'kept', 'deleted', or 'added'.
+
+# Arguments
+- `d::Union{LSP,FastLSP,LCS,FastLCS}`: The distance metric (LSP or LCS).
+- `x::Vector{T}`: The first sequence.
+- `y::Vector{T}`: The second sequence.
+"""
 function print_info(
     d::Union{LSP,FastLSP,LCS,FastLCS},
     x::Vector{T}, y::Vector{T}
@@ -299,3 +439,7 @@ function print_info(
         println("$(x[ix]) (keep)")
     end
 end
+
+
+
+

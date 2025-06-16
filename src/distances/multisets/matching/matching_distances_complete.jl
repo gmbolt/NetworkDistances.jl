@@ -11,18 +11,38 @@ export get_cost_matrix_dynamic, get_cost_matrix_fixed
 include("penalties.jl")
 include("optimisers.jl")
 
-# Absract type for matching distances 
+"""
+    AbstractMatchingDistance
+
+Abstract type for all matching-based distances.
+"""
 abstract type AbstractMatchingDistance <: SemiMetric end
-# Complete matching distances a sub-type thereof
+
+"""
+    CompleteMatchingDistance
+
+Abstract type for complete matching distances, a subtype of `AbstractMatchingDistance`.
+"""
 abstract type CompleteMatchingDistance <: AbstractMatchingDistance end
 
 """
     get_cost_matrix_dynamic(d::AbstractMatchingDistance, X, Y)
 
-Return cost matrix for evaluating matching-based distance between `X` and `Y`. 
+Return cost matrix for evaluating matching-based distance between `X` and `Y`.
 
 This is done "dynamically" in the sense that the first axis of the output matrix 
 will always correspond to the shorter of the two passed vectors `X` and `Y`.
+
+# Arguments
+- `d::AbstractMatchingDistance`: The matching distance metric.
+- `X`: The first input (e.g., a vector of elements).
+- `Y`: The second input (e.g., a vector of elements).
+
+# Returns
+- `Matrix{Float64}`: The dynamically generated cost matrix.
+
+# Throws
+- `NotImplementedError`: If the method is not implemented for the given distance type.
 """
 function get_cost_matrix_dynamic(
     d::AbstractMatchingDistance,
@@ -34,9 +54,20 @@ end
 """
     get_cost_matrix_fixed(d::AbstractMatchingDistance, X, Y)
 
-Return cost matrix for evaluating matching-based distance between `X` and `Y`. 
+Return cost matrix for evaluating matching-based distance between `X` and `Y`.
 
 This is "fixed" in the sense the first axis of output matrix always corresponds to `X` and the second to `Y`.
+
+# Arguments
+- `d::AbstractMatchingDistance`: The matching distance metric.
+- `X`: The first input (e.g., a vector of elements).
+- `Y`: The second input (e.g., a vector of elements).
+
+# Returns
+- `Matrix{Float64}`: The fixed cost matrix.
+
+# Throws
+- `NotImplementedError`: If the method is not implemented for the given distance type.
 """
 function get_cost_matrix_fixed(
     d::AbstractMatchingDistance,
@@ -45,15 +76,46 @@ function get_cost_matrix_fixed(
     return NotImplementedError("Method get_cost_matrix_fixed() not implemented for this distance.")
 end
 
+"""
+    MatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser}
+
+Struct representing a general matching distance.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `penalty::S`: The penalty function for unmatched elements.
+- `optimiser::R`: The matching optimiser (e.g., Hungarian algorithm).
+"""
 struct MatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
     penalty::S
     optimiser::R
 end
 
-# Optimier query function
+"""
+    get_optimiser(d::MatchingDistance)
+
+Returns the matching optimiser used by the `MatchingDistance`.
+
+# Arguments
+- `d::MatchingDistance`: The matching distance object.
+
+# Returns
+- `MatchingOptimiser`: The optimiser instance.
+"""
 get_optimiser(d::MatchingDistance) = d.optimiser
-# Constructors
+
+"""
+    MatchingDistance(d::SemiMetric, penalty::PenaltyFunction; optimiser::String="hungarian")
+    MatchingDistance(d::SemiMetric; optimiser::String="hungarian")
+
+Constructors for `MatchingDistance`.
+
+# Arguments
+- `d::SemiMetric`: The ground distance metric.
+- `penalty::PenaltyFunction`: The penalty function (optional, defaults to `DistancePenalty(d)`).
+- `optimiser::String`: The name of the optimiser to use (defaults to "hungarian").
+"""
 MatchingDistance(d::SemiMetric, penalty::PenaltyFunction; optimiser::String="hungarian") = MatchingDistance(d, penalty, get_optimiser_instance(optimiser))
 MatchingDistance(d::SemiMetric; optimiser::String="hungarian") = MatchingDistance(d, DistancePenalty(d), get_optimiser_instance(optimiser))
 
@@ -97,7 +159,17 @@ function get_cost_matrix_fixed(
 
 end
 
+"""
+    FastMatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser}
 
+Struct representing an optimized matching distance that pre-allocates a cost matrix for performance.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `penalty::S`: The penalty function for unmatched elements.
+- `optimiser::R`: The matching optimiser.
+- `C::Matrix{Float64}`: Pre-allocated cost matrix.
+"""
 struct FastMatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
     penalty::S
@@ -109,6 +181,19 @@ struct FastMatchingDistance{T<:SemiMetric,S<:PenaltyFunction,R<:MatchingOptimise
 end
 
 const FastMatchDist = FastMatchingDistance
+
+"""
+    FastMatchingDistance(d::SemiMetric, penalty::PenaltyFunction, K::Int; optimiser::String="hungarian")
+    FastMatchingDistance(d::SemiMetric, K::Int; optimiser::String="hungarian")
+
+Constructors for `FastMatchingDistance`.
+
+# Arguments
+- `d::SemiMetric`: The ground distance metric.
+- `penalty::PenaltyFunction`: The penalty function.
+- `K::Int`: The maximum size for pre-allocation of the cost matrix.
+- `optimiser::String`: The name of the optimiser to use (defaults to "hungarian").
+"""
 FastMatchingDistance(d::SemiMetric, penalty::PenaltyFunction, K::Int; optimiser::String="hungarian") = FastMatchingDistance(d, penalty, get_optimiser_instance(optimiser), K)
 FastMatchingDistance(d::SemiMetric, K::Int; optimiser::String="hungarian") = FastMatchingDistance(d, DistancePenalty(d), get_optimiser_instance(optimiser), K)
 
@@ -176,6 +261,13 @@ function get_cost_matrix_fixed(
 
 end
 
+"""
+    (d::Union{MatchDist,FastMatchDist})(X::Nothing, Y::Vector{T})::Float64 where {T}
+    (d::Union{MatchDist,FastMatchDist})(X::Vector{T}, Y::Nothing)::Float64 where {T}
+    (d::Union{MatchDist,FastMatchDist})(X::Nothing, Y::Nothing)::Float64
+
+Computes the matching distance when one or both inputs are `nothing`.
+"""
 function (d::Union{MatchDist,FastMatchDist})(X::Nothing, Y::Vector{T})::Float64 where {T}
     return sum(p -> d.penalty(p), Y)
 end
@@ -192,11 +284,32 @@ const FixPenMatchDist{T} = FixedPenaltyMatchingDistance{T} where {T<:SemiMetric}
 FixedPenaltyMatchingDistance(d::SemiMetric, penalty::Real) = MatchDist(d, FixedPenalty(penalty))
 FixPenMatchDist(args...) = FixedPenaltyMatchingDistance(args...)
 
+"""
+    AvgSizeMatchingDistance{T<:SemiMetric,S<:MatchingOptimiser}
+
+Struct representing a matching distance that penalizes based on the average size of elements.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `penalty::Float64`: The penalty value.
+- `optimiser::S`: The matching optimiser.
+"""
 struct AvgSizeMatchingDistance{T<:SemiMetric,S<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
     penalty::Float64
     optimiser::S
 end
+
+"""
+    AvgSizeMatchingDistance(d::SemiMetric, penalty::Float64; optimiser::String="hungarian")
+
+Constructor for `AvgSizeMatchingDistance`.
+
+# Arguments
+- `d::SemiMetric`: The ground distance metric.
+- `penalty::Float64`: The penalty value.
+- `optimiser::String`: The name of the optimiser to use (defaults to "hungarian").
+"""
 AvgSizeMatchingDistance(d::SemiMetric, penalty::Float64; optimiser::String="hungarian") = AvgSizeMatchingDistance(d, penalty, get_optimiser_instance(optimiser))
 
 const AvgSizeMatchDist = AvgSizeMatchingDistance
@@ -247,8 +360,15 @@ function get_cost_matrix_fixed(
 
 end
 
+"""
+    (d::AvgSizeMatchDist)(X::Nothing, Y::Vector{T})::Float64 where {T}
+    (d::AvgSizeMatchDist)(X::Vector{T}, Y::Nothing)::Float64 where {T}
+    (d::AvgSizeMatchDist)(X::Nothing, Y::Nothing)::Float64
+
+Computes the average size matching distance when one or both inputs are `nothing`.
+"""
 function (d::AvgSizeMatchDist)(X::Nothing, Y::Vector{T})::Float64 where {T}
-    return (d.penalty * length(Y)) + sum(x -> dist.ground_dist(x, nothing), Y)
+    return (d.penalty * length(Y)) + sum(x -> d.ground_dist(x, nothing), Y)
 end
 function (d::AvgSizeMatchDist)(X::Vector{T}, Y::Nothing)::Float64 where {T}
     d(Y, X)
@@ -257,10 +377,29 @@ function (d::AvgSizeMatchDist)(X::Nothing, Y::Nothing)::Float64
     return 0.0
 end
 
+"""
+    MinDistMatchingDistance{T<:SemiMetric,S<:MatchingOptimiser}
+
+Struct representing a matching distance that penalizes based on the minimum distance to an element.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `optimiser::S`: The matching optimiser.
+"""
 struct MinDistMatchingDistance{T<:SemiMetric,S<:MatchingOptimiser} <: CompleteMatchingDistance
     ground_dist::T
     optimiser::S
 end
+
+"""
+    MinDistMatchingDistance(d::SemiMetric; optimiser::String="hungarian")
+
+Constructor for `MinDistMatchingDistance`.
+
+# Arguments
+- `d::SemiMetric`: The ground distance metric.
+- `optimiser::String`: The name of the optimiser to use (defaults to "hungarian").
+"""
 MinDistMatchingDistance(d::SemiMetric; optimiser::String="hungarian") = MinDistMatchingDistance(d, get_optimiser_instance(optimiser))
 
 const MinDistMatchDist{T,S} = MinDistMatchingDistance where {T,S}
@@ -307,3 +446,5 @@ function get_cost_matrix_fixed(
     end
 
 end
+
+

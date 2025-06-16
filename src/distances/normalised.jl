@@ -2,9 +2,14 @@ using Distances
 
 export Normalised
 """
-Normalised distance obtained by applying Steinhaus transform to given distance. 
+    Normalised{T<:SemiMetric}
 
-Note this will be a metric given `d` is a metric.
+Normalised distance obtained by applying Steinhaus transform to a given distance `d`.
+
+Note that this will be a metric if `d` is a metric.
+
+# Fields
+- `d::T`: The semi-metric to be normalised.
 """
 struct Normalised{T<:SemiMetric} <: SemiMetric
     d::T
@@ -18,6 +23,19 @@ function Base.show(io::IO, d_n::Normalised{T}) where {T<:SemiMetric}
     print(io, "Normalised{$(d_str)}")
 end
 
+"""
+    (d_n::Normalised{T})(x, y) where {T<:SemiMetric}
+
+Computes the normalised distance between `x` and `y` using the Steinhaus transform.
+
+# Arguments
+- `d_n::Normalised{T}`: The normalised distance metric.
+- `x`: The first element.
+- `y`: The second element.
+
+# Returns
+- `Float64`: The normalised distance.
+"""
 function (d_n::Normalised{T})(x, y) where {T<:SemiMetric}
     d = d_n.d
     d_tmp = d(x, y)
@@ -25,3 +43,5 @@ function (d_n::Normalised{T})(x, y) where {T<:SemiMetric}
 end
 
 (d_n::Normalised{T} where {T<:SemiMetric})(x::Nothing, y::Nothing) = 0.0 # To avoid NaN
+
+

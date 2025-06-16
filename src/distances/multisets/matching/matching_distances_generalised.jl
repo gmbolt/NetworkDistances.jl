@@ -8,10 +8,31 @@ export get_info, print_info, get_info_deep
 # Idea here is any complete matching can be used to construct a general one. 
 
 # Done via parametric typing...
+"""
+    General{T<:CompleteMatchingDistance}
+
+Struct representing a general matching distance, which can be constructed from any `CompleteMatchingDistance`.
+
+# Fields
+- `d::T`: The underlying complete matching distance.
+"""
 struct General{T<:CompleteMatchingDistance} <: AbstractMatchingDistance
     d::T
 end
 
+"""
+    get_cost_matrix_fixed(d_gen::General{S}, X::Vector{T}, Y::Vector{T}) where {S<:MatchDist,T}
+
+Computes the fixed cost matrix for a `General` matching distance with an underlying `MatchDist`.
+
+# Arguments
+- `d_gen::General{S}`: The general matching distance object.
+- `X::Vector{T}`: The first vector of elements.
+- `Y::Vector{T}`: The second vector of elements.
+
+# Returns
+- `Matrix{Float64}`: The fixed cost matrix.
+"""
 function get_cost_matrix_fixed(
     d_gen::General{S},
     X::Vector{T}, Y::Vector{T}
@@ -36,6 +57,19 @@ function get_cost_matrix_fixed(
     return C
 end
 
+"""
+    get_cost_matrix_fixed(d_gen::General{S}, X::Vector{T}, Y::Vector{T}) where {S<:FixPenMatchDist,T}
+
+Computes the fixed cost matrix for a `General` matching distance with an underlying `FixPenMatchDist`.
+
+# Arguments
+- `d_gen::General{S}`: The general matching distance object.
+- `X::Vector{T}`: The first vector of elements.
+- `Y::Vector{T}`: The second vector of elements.
+
+# Returns
+- `Matrix{Float64}`: The fixed cost matrix.
+"""
 function get_cost_matrix_fixed(
     d_gen::General{S},
     X::Vector{T}, Y::Vector{T}
@@ -58,6 +92,19 @@ function get_cost_matrix_fixed(
     return C
 end
 
+"""
+    get_cost_matrix_fixed(d_gen::General{S}, X::Vector{T}, Y::Vector{T}) where {S<:AvgSizeMatchDist,T}
+
+Computes the fixed cost matrix for a `General` matching distance with an underlying `AvgSizeMatchDist`.
+
+# Arguments
+- `d_gen::General{S}`: The general matching distance object.
+- `X::Vector{T}`: The first vector of elements.
+- `Y::Vector{T}`: The second vector of elements.
+
+# Returns
+- `Matrix{Float64}`: The fixed cost matrix.
+"""
 function get_cost_matrix_fixed(
     d_gen::General{S},
     X::Vector{T}, Y::Vector{T}
@@ -87,13 +134,26 @@ function get_cost_matrix_fixed(
 
 end
 
+"""
+    get_cost_matrix_fixed(d_gen::General{S}, X::Vector{T}, Y::Vector{T}) where {S<:MinDistMatchDist,T}
+
+Computes the fixed cost matrix for a `General` matching distance with an underlying `MinDistMatchDist`.
+
+# Arguments
+- `d_gen::General{S}`: The general matching distance object.
+- `X::Vector{T}`: The first vector of elements.
+- `Y::Vector{T}`: The second vector of elements.
+
+# Returns
+- `Matrix{Float64}`: The fixed cost matrix.
+"""
 function get_cost_matrix_fixed(
     d_gen::General{S},
     X::Vector{T}, Y::Vector{T}
 ) where {S<:MinDistMatchDist,T}
 
     d_g = d_gen.d.ground_dist
-    penalty = d_gen.d.penalty
+    # penalty = d_gen.d.penalty # This field does not exist in MinDistMatchDist
     N, M = (length(X), length(Y))
     # C_v = view(C, 1:N, 1:M)
     C = pairwise_inbounds(d_g, X, Y)
@@ -102,9 +162,11 @@ function get_cost_matrix_fixed(
         map(minimum, eachcol(C))
     )
     C = [
-        C [x + penalty for x ∈ x_min_vec, i in 1:N]
-        [y + penalty for i in 1:M, y ∈ y_min_vec] zeros(M, N)
+        C [x for x ∈ x_min_vec, i in 1:N]
+        [y for i in 1:M, y ∈ y_min_vec] zeros(M, N)
     ]
     return C
 
 end
+
+

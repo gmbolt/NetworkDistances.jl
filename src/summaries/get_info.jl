@@ -1,5 +1,16 @@
 export get_info, print_info, get_info_deep
 
+"""
+    deep_invert(x::Vector{Vector{Bool}})
+
+Inverts a nested vector of booleans. Each inner boolean vector has its elements inverted.
+
+# Arguments
+- `x::Vector{Vector{Bool}}`: A nested vector of boolean vectors.
+
+# Returns
+- `Vector{Vector{Bool}}`: A new nested vector with all boolean values inverted.
+"""
 function deep_invert(x::Vector{Vector{Bool}})
     return [.!xi for xi in x]
 end
@@ -10,6 +21,17 @@ end
 
 const MatchingBasedDistance = Union{CompleteMatchingDistance,General{T}} where {T<:CompleteMatchingDistance}
 
+"""
+    print_info(d::T, X::Vector{S}, Y::Vector{S}) where {T<:MatchingBasedDistance,S}
+
+Prints a summary of the matching between two sets of elements `X` and `Y` based on a matching-based distance `d`.
+It shows matched pairs and unmatched entries.
+
+# Arguments
+- `d::T`: The matching-based distance metric.
+- `X::Vector{S}`: The first vector of elements.
+- `Y::Vector{S}`: The second vector of elements.
+"""
 function print_info(
     d::T,
     X::Vector{S}, Y::Vector{S}
@@ -40,6 +62,20 @@ function print_info(
 end
 
 
+"""
+    get_info(d::T, X::Vector{S}, Y::Vector{S}) where {T<:MatchingBasedDistance,S}
+
+Retrieves the indices of matched elements between two sets `X` and `Y` based on a matching-based distance `d`.
+
+# Arguments
+- `d::T`: The matching-based distance metric.
+- `X::Vector{S}`: The first vector of elements.
+- `Y::Vector{S}`: The second vector of elements.
+
+# Returns
+- `Tuple{Vector{Int}, Vector{Int}}`: A tuple containing two integer vectors, `indx` and `indy`,
+  representing the indices of matched elements in `X` and `Y` respectively.
+"""
 function get_info(
     d::T,
     X::Vector{S}, Y::Vector{S}
@@ -59,9 +95,20 @@ function get_info(
 end
 
 """
-    get_info_deep(d::MatchingBasedDistance, X::Vector{Vector{S}}, Y::Vector{Vector{S}}) 
+    get_info_deep(d::MatchingBasedDistance, X::Vector{Vector{S}}, Y::Vector{Vector{S}}; invert::Bool=false)
 
-Returns two vectors indicating which entries have been matched. An entry being `true` in the output implies this entry was matched with one in the other observation. 
+Returns two vectors of boolean vectors indicating which entries have been matched at a deeper level.
+An entry being `true` in the output implies this entry was matched with one in the other observation.
+
+# Arguments
+- `d::MatchingBasedDistance`: The matching-based distance metric.
+- `X::Vector{Vector{S}}`: The first nested vector of elements.
+- `Y::Vector{Vector{S}}`: The second nested vector of elements.
+- `invert::Bool`: If `true`, the boolean vectors are inverted (default: `false`).
+
+# Returns
+- `Tuple{Vector{BitVector},Vector{BitVector}}`: A tuple containing two vectors of `BitVector`s,
+  indicating matched elements in `X` and `Y` respectively.
 """
 function get_info_deep(
     d::T,
@@ -92,8 +139,17 @@ end
 # Edit distances
 # ==============
 
+"""
+    print_info(d::Union{EditDistance,FastEditDistance,FixPenEditDist,FastFixPenEditDist}, x::Vector{T}, y::Vector{T}) where {T}
 
+Prints information about the optimal matching between two sequences based on edit distances.
+It shows matched elements and insertions/deletions.
 
+# Arguments
+- `d::Union{EditDistance,FastEditDistance,FixPenEditDist,FastFixPenEditDist}`: The edit distance metric.
+- `x::Vector{T}`: The first sequence.
+- `y::Vector{T}`: The second sequence.
+"""
 function print_info(
     d::Union{EditDistance,FastEditDistance,FixPenEditDist,FastFixPenEditDist},
     x::Vector{T}, y::Vector{T}
@@ -133,6 +189,20 @@ end
 
 
 
+"""
+    get_info(d::Union{FixPenEditDist,FastFixPenEditDist}, x::Vector{T}, y::Vector{T}) where {T}
+
+Retrieves the indices of matched elements between two sequences based on fixed penalty edit distances.
+
+# Arguments
+- `d::Union{FixPenEditDist,FastFixPenEditDist}`: The fixed penalty edit distance metric.
+- `x::Vector{T}`: The first sequence.
+- `y::Vector{T}`: The second sequence.
+
+# Returns
+- `Tuple{Vector{Bool}, Vector{Bool}}`: A tuple containing two boolean vectors, `indx` and `indy`,
+  indicating whether each element in `x` and `y` respectively is part of the optimal alignment.
+"""
 function get_info(
     d::Union{FixPenEditDist,FastFixPenEditDist},
     x::Vector{T}, y::Vector{T}
@@ -168,6 +238,21 @@ function get_info(
     return indx, indy
 end
 
+"""
+    get_info_deep(d::Union{EditDistance,FastEditDistance,FixPenEditDist,FastFixPenEditDist}, x::Vector{T}, y::Vector{T}; invert::Bool=false)
+
+Retrieves detailed information about the alignment of two sequences based on edit distances, including nested matches.
+
+# Arguments
+- `d::Union{EditDistance,FastEditDistance,FixPenEditDist,FastFixPenEditDist}`: The edit distance metric.
+- `x::Vector{T}`: The first sequence.
+- `y::Vector{T}`: The second sequence.
+- `invert::Bool`: If `true`, the boolean vectors are inverted (default: `false`).
+
+# Returns
+- `Tuple{Vector{BitVector},Vector{BitVector}}`: A tuple containing two vectors of `BitVector`s,
+  indicating matched elements in `x` and `y` respectively, potentially at a deeper level.
+"""
 function get_info_deep(
     d::Union{EditDistance,FastEditDistance,FixPenEditDist,FastFixPenEditDist},
     x::Vector{T}, y::Vector{T};
@@ -196,3 +281,5 @@ function get_info_deep(
         return outx, outy
     end
 end
+
+

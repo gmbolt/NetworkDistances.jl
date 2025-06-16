@@ -9,12 +9,32 @@ export print_info, get_info, get_info_deep
 
 # EditDistance
 # ---
+"""
+    EditDistance{T<:Metric}
+
+Struct representing the Edit Distance metric.
+
+# Fields
+- `ground_dist::T`: The ground distance metric used for element-wise comparisons.
+"""
 struct EditDistance{T<:Metric} <: Metric
     ground_dist::T
 end
 
 const EditDist = EditDistance
 
+"""
+    (d::EditDistance)(S1::Vector{T}, S2::Vector{T}) where {T}
+
+Computes the Edit Distance between two sequences `S1` and `S2`.
+
+# Arguments
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+
+# Returns
+- `Float64`: The computed Edit Distance.
+"""
 function (d::EditDistance)(S1::Vector{T}, S2::Vector{T}) where {T}
     if length(S1) < length(S2)  # This ensures first seq is longest
         d(S2, S1)
@@ -40,6 +60,16 @@ end
 # EditDistance with Memory
 # ---------------
 
+"""
+    FastEditDistance{T<:Metric}
+
+Struct representing an optimized Edit Distance metric that pre-allocates arrays for performance.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `curr_row::Vector{Float64}`: Pre-allocated current row for dynamic programming.
+- `prev_row::Vector{Float64}`: Pre-allocated previous row for dynamic programming.
+"""
 struct FastEditDistance{T<:Metric} <: Metric
     ground_dist::T
     curr_row::Vector{Float64}
@@ -55,6 +85,18 @@ function Base.show(io::IO, d::FastEditDistance{T}) where {T<:SemiMetric}
     print(io, "FastEditDistance{$(T),$(length(d.curr_row))}")
 end
 
+"""
+    (d::FastEditDistance)(S1::Vector{T}, S2::Vector{T}) where {T}
+
+Computes the Edit Distance between two sequences `S1` and `S2` using pre-allocated storage for performance.
+
+# Arguments
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+
+# Returns
+- `Float64`: The computed Edit Distance.
+"""
 function (d::FastEditDistance)(S1::Vector{T}, S2::Vector{T}) where {T}
     if length(S1) < length(S2)  # This ensures first seq is longest
         d(S2, S1)
@@ -89,6 +131,13 @@ function (d::FastEditDistance)(S1::Vector{T}, S2::Vector{T}) where {T}
     end
 end
 
+"""
+    (d::Union{EditDist,FastEditDist})(X::Nothing, Y::Vector{T})::Float64 where {T}
+    (d::Union{EditDist,FastEditDist})(X::Vector{T}, Y::Nothing)::Float64 where {T}
+    (d::Union{EditDist,FastEditDist})(X::Nothing, Y::Nothing)::Float64
+
+Computes the Edit Distance when one or both inputs are `nothing`.
+"""
 function (d::Union{EditDist,FastEditDist})(X::Nothing, Y::Vector{T})::Float64 where {T}
     return sum(p -> d.ground_dist(nothing, p), Y)
 end
@@ -100,6 +149,16 @@ function (d::Union{EditDist,FastEditDist})(X::Nothing, Y::Nothing)::Float64
 end
 
 
+"""
+    print_info(d::Union{EditDistance,FastEditDistance}, S1::Vector{T}, S2::Vector{T}) where {T}
+
+Prints information about the optimal alignment of two sequences based on Edit Distance.
+
+# Arguments
+- `d::Union{EditDistance,FastEditDistance}`: The Edit Distance metric.
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+"""
 function print_info(
     d::Union{EditDistance,FastEditDistance},
     S1::Vector{T}, S2::Vector{T}
@@ -108,8 +167,8 @@ function print_info(
     d₀ = d.ground_dist
     # First find the substitution matrix
     C = zeros(Float64, length(S1) + 1, length(S2) + 1)
-    C[:, 1] = pushfirst!(cumsum([d₀(Λ, p) for p in S1]), 0.0)
-    C[1, :] = pushfirst!(cumsum([d₀(Λ, p) for p in S2]), 0.0)
+    C[:, 1] = pushfirst!(cumsum([d₀(nothing, p) for p in S1]), 0.0)
+    C[1, :] = pushfirst!(cumsum([d₀(nothing, p) for p in S2]), 0.0)
 
     for j in 1:length(S2)
         for i in 1:length(S1)
@@ -163,6 +222,20 @@ function print_info(
 
 end
 
+"""
+    get_info(d::Union{EditDistance,FastEditDistance}, x::Vector{T}, y::Vector{T}) where {T}
+
+Retrieves information about the optimal alignment of two sequences based on Edit Distance.
+
+# Arguments
+- `d::Union{EditDistance,FastEditDistance}`: The Edit Distance metric.
+- `x::Vector{T}`: The first sequence.
+- `y::Vector{T}`: The second sequence.
+
+# Returns
+- `Tuple{Vector{Bool}, Vector{Bool}}`: A tuple containing two boolean vectors, `indx` and `indy`,
+  indicating whether each element in `x` and `y` respectively is part of the optimal alignment.
+"""
 function get_info(
     d::Union{EditDistance,FastEditDistance},
     x::Vector{T}, y::Vector{T}
@@ -200,6 +273,15 @@ function get_info(
     return indx, indy
 end
 
+"""
+    FixedPenaltyEditDistance{T<:SemiMetric}
+
+Struct representing the Fixed Penalty Edit Distance metric.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `ρ::Real`: The fixed penalty for insertions/deletions.
+"""
 struct FixedPenaltyEditDistance{T<:SemiMetric} <: SemiMetric
     ground_dist::T
     ρ::Real
@@ -207,6 +289,18 @@ end
 
 const FixPenEditDist = FixedPenaltyEditDistance
 
+"""
+    (d::FixPenEditDist)(S1::Vector{T}, S2::Vector{T}) where {T}
+
+Computes the Fixed Penalty Edit Distance between two sequences `S1` and `S2`.
+
+# Arguments
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+
+# Returns
+- `Float64`: The computed Fixed Penalty Edit Distance.
+"""
 function (d::FixPenEditDist)(S1::Vector{T}, S2::Vector{T}) where {T}
     if length(S1) < length(S2)
         d(S2, S1)
@@ -232,6 +326,17 @@ end
 # FixedPenaltyEditDistance with Memory
 # ------------------------------------
 
+"""
+    FastFixedPenaltyEditDistance{T<:SemiMetric}
+
+Struct representing an optimized Fixed Penalty Edit Distance metric that pre-allocates arrays for performance.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `ρ::Real`: The fixed penalty for insertions/deletions.
+- `curr_row::Vector{Float64}`: Pre-allocated current row for dynamic programming.
+- `prev_row::Vector{Float64}`: Pre-allocated previous row for dynamic programming.
+"""
 struct FastFixedPenaltyEditDistance{T<:SemiMetric} <: SemiMetric
     ground_dist::T
     ρ::Real
@@ -248,6 +353,18 @@ function Base.show(io::IO, d::FastFixPenEditDist{T}) where {T<:SemiMetric}
     print(io, "FastFixPenEditDist{$(T),$(length(d.curr_row))}")
 end
 
+"""
+    (d::FastFixPenEditDist)(S1::Vector{T}, S2::Vector{T}) where {T}
+
+Computes the Fixed Penalty Edit Distance between two sequences `S1` and `S2` using pre-allocated storage for performance.
+
+# Arguments
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+
+# Returns
+- `Float64`: The computed Fixed Penalty Edit Distance.
+"""
 function (d::FastFixPenEditDist)(S1::Vector{T}, S2::Vector{T}) where {T}
     if length(S1) < length(S2)  # This ensures first seq is longest
         d(S2, S1)
@@ -280,6 +397,13 @@ end
 
 # Distance to nothings 
 
+"""
+    (d::Union{FixPenEditDist,FastFixPenEditDist})(X::Nothing, Y::Vector{T})::Float64 where {T}
+    (d::Union{FixPenEditDist,FastFixPenEditDist})(X::Vector{T}, Y::Nothing)::Float64 where {T}
+    (d::Union{FixPenEditDist,FastFixPenEditDist})(X::Nothing, Y::Nothing)::Float64
+
+Computes the Fixed Penalty Edit Distance when one or both inputs are `nothing`.
+"""
 function (d::Union{FixPenEditDist,FastFixPenEditDist})(X::Nothing, Y::Vector{T})::Float64 where {T}
     return d.ρ * length(Y)
 end
@@ -291,12 +415,32 @@ function (d::Union{FixPenEditDist,FastFixPenEditDist})(X::Nothing, Y::Nothing)::
 end
 
 
+"""
+    AvgSizeFpEditDistance{T<:Metric}
 
+Struct representing an Average Size Fixed Penalty Edit Distance metric.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `ρ::Real`: The fixed penalty for insertions/deletions.
+"""
 struct AvgSizeFpEditDistance{T<:Metric} <: Metric
     ground_dist::T
     ρ::Real
 end
 
+"""
+    (d::AvgSizeFpEditDistance)(S1::Vector{T}, S2::Vector{T}) where {T}
+
+Computes the Average Size Fixed Penalty Edit Distance between two sequences `S1` and `S2`.
+
+# Arguments
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+
+# Returns
+- `Float64`: The computed Average Size Fixed Penalty Edit Distance.
+"""
 function (d::AvgSizeFpEditDistance)(S1::Vector{T}, S2::Vector{T}) where {T}
 
     d_ed = FixPenEditDist(d.ground_dist, d.ρ)(S1, S2)
@@ -304,4 +448,5 @@ function (d::AvgSizeFpEditDistance)(S1::Vector{T}, S2::Vector{T}) where {T}
     return d_ed + (mean(length.(S1)) - mean(length.(S2)))^2
 
 end
+
 

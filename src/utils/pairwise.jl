@@ -2,7 +2,16 @@ using Distances, StatsBase, ProgressMeter
 export pairwise_inbounds, pairwise_inbounds!, progress_pairwise
 
 """
-In-place distance matrix calculation between elements of Vectors.
+    Distances.pairwise!(A::AbstractArray, metric::Metric, a::Vector{T}, b::Vector{T})
+
+Computes the distance matrix between elements of two vectors `a` and `b` using the given `metric`,
+and stores the result in-place in `A`.
+
+# Arguments
+- `A::AbstractArray`: The output array to store the distance matrix.
+- `metric::Metric`: The distance metric to use.
+- `a::Vector{T}`: The first vector of elements.
+- `b::Vector{T}`: The second vector of elements.
 """
 function Distances.pairwise!(
     A::AbstractArray,
@@ -18,6 +27,18 @@ function Distances.pairwise!(
     end
 end
 
+"""
+    pairwise_inbounds!(A::AbstractArray, metric::Metric, a::Vector{T}, b::Vector{T}) where {T}
+
+Computes the distance matrix between elements of two vectors `a` and `b` using the given `metric`,
+and stores the result in-place in `A`, with `@inbounds` optimization.
+
+# Arguments
+- `A::AbstractArray`: The output array to store the distance matrix.
+- `metric::Metric`: The distance metric to use.
+- `a::Vector{T}`: The first vector of elements.
+- `b::Vector{T}`: The second vector of elements.
+"""
 function pairwise_inbounds!(
     A::AbstractArray,
     metric::Metric,
@@ -34,7 +55,16 @@ function pairwise_inbounds!(
 end
 
 """
-In-place distance matrix calculation between elements of Vectors. (For SubArray)
+    Distances.pairwise!(A::SubArray, metric::Metric, a::Vector{T}, b::Vector{T}) where {T}
+
+Computes the distance matrix between elements of two vectors `a` and `b` using the given `metric`,
+and stores the result in-place in `A` (for SubArray).
+
+# Arguments
+- `A::SubArray`: The output SubArray to store the distance matrix.
+- `metric::Metric`: The distance metric to use.
+- `a::Vector{T}`: The first vector of elements.
+- `b::Vector{T}`: The second vector of elements.
 """
 function Distances.pairwise!(
     A::SubArray,
@@ -52,7 +82,16 @@ end
 
 
 """
-In-place distance matrix calculation between elements of Vectors. (For SubArray)
+    Distances.pairwise!(A::AbstractMatrix, metric::Metric, a::Vector{T}, b::Vector{T}) where {T}
+
+Computes the distance matrix between elements of two vectors `a` and `b` using the given `metric`,
+and stores the result in-place in `A` (for AbstractMatrix).
+
+# Arguments
+- `A::AbstractMatrix`: The output AbstractMatrix to store the distance matrix.
+- `metric::Metric`: The distance metric to use.
+- `a::Vector{T}`: The first vector of elements.
+- `b::Vector{T}`: The second vector of elements.
 """
 function Distances.pairwise!(
     A::AbstractMatrix,
@@ -70,10 +109,20 @@ end
 
 
 """
-Distance matrix calculation between elements of Vectors. This is a custom extension
-of the function in the Distances.jl package to allow vectors of general type. The
-function in Distances.jl is designed for univariate/multivariate data and so takes
+    Distances.pairwise(metric::SemiMetric, a::Vector{T}, b::Vector{T}) where {T}
+
+Computes the distance matrix between elements of two vectors `a` and `b` using the given `metric`.
+This is a custom extension of the function in the Distances.jl package to allow vectors of general type.
+The function in Distances.jl is designed for univariate/multivariate data and so takes
 as input either vectors or matrices (data points as rows).
+
+# Arguments
+- `metric::SemiMetric`: The distance metric to use.
+- `a::Vector{T}`: The first vector of elements.
+- `b::Vector{T}`: The second vector of elements.
+
+# Returns
+- `Matrix{Float64}`: The computed distance matrix.
 """
 function Distances.pairwise(
     metric::SemiMetric,
@@ -89,6 +138,20 @@ function Distances.pairwise(
     return D
 end
 
+"""
+    pairwise_inbounds(metric::SemiMetric, a::Vector{T}, b::Vector{T}) where {T}
+
+Computes the distance matrix between elements of two vectors `a` and `b` using the given `metric`,
+with `@inbounds` optimization.
+
+# Arguments
+- `metric::SemiMetric`: The distance metric to use.
+- `a::Vector{T}`: The first vector of elements.
+- `b::Vector{T}`: The second vector of elements.
+
+# Returns
+- `Matrix{Float64}`: The computed distance matrix.
+"""
 function pairwise_inbounds(
     metric::SemiMetric,
     a::Vector{T},
@@ -106,7 +169,17 @@ function pairwise_inbounds(
 end
 
 """
-Distance matrix calculation between elements of Vectors with progress bar.
+    progress_pairwise(d::SemiMetric, a::Vector{T}) where {T}
+
+Computes the pairwise distance matrix for a single vector `a` using the given `SemiMetric` `d`,
+and displays a progress bar.
+
+# Arguments
+- `d::SemiMetric`: The distance metric to use.
+- `a::Vector{T}`: The vector of elements.
+
+# Returns
+- `Matrix{Float64}`: The symmetric distance matrix.
 """
 function progress_pairwise(
     d::SemiMetric,
@@ -125,3 +198,5 @@ function progress_pairwise(
     return D
 
 end
+
+

@@ -2,10 +2,30 @@ using StatsBase, Distances, Printf
 
 export DTW, FixedPenaltyDTW, FixPenDTW
 
+"""
+    DTW{T<:SemiMetric}
+
+Struct representing the Dynamic Time Warping (DTW) distance metric.
+
+# Fields
+- `ground_dist::T`: The ground distance metric used for element-wise comparisons.
+"""
 struct DTW{T<:SemiMetric} <: SemiMetric
     ground_dist::T
 end
 
+"""
+    (d::DTW)(S1::Vector{T}, S2::Vector{T}) where {T}
+
+Computes the Dynamic Time Warping (DTW) distance between two sequences `S1` and `S2`.
+
+# Arguments
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+
+# Returns
+- `Float64`: The computed DTW distance.
+"""
 function (d::DTW)(
     S1::Vector{T}, S2::Vector{T}
 ) where {T}
@@ -27,6 +47,13 @@ function (d::DTW)(
     end
 end
 
+"""
+    (d::DTW)(S1::Nothing, S2::Vector{T}) where {T}
+    (d::DTW)(S1::Vector{T}, S2::Nothing) where {T}
+    (d::DTW)(S1::Nothing, S2::Nothing)
+
+Computes the DTW distance when one or both inputs are `nothing`.
+"""
 function (d::DTW)(
     S1::Nothing, S2::Vector{T}
 ) where {T}
@@ -43,6 +70,16 @@ end
 (d::DTW)(S1::Nothing, S2::Nothing) = 0.0
 
 
+"""
+    print_info(d::DTW, S1::Vector{T}, S2::Vector{T}) where {T}
+
+Prints information about the optimal coupling (alignment) of two sequences based on DTW distance.
+
+# Arguments
+- `d::DTW`: The DTW distance metric.
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+"""
 function print_info(
     d::DTW,
     S1::Vector{T}, S2::Vector{T}
@@ -93,6 +130,15 @@ end
 # Penalised 
 # ---------
 
+"""
+    FixedPenaltyDTW{T<:SemiMetric}
+
+Struct representing the Fixed Penalty Dynamic Time Warping (DTW) distance metric.
+
+# Fields
+- `ground_dist::T`: The ground distance metric.
+- `ρ::Real`: The fixed penalty for insertions/deletions.
+"""
 struct FixedPenaltyDTW{T<:SemiMetric} <: SemiMetric
     ground_dist::T
     ρ::Real
@@ -100,6 +146,18 @@ end
 
 const FixPenDTW = FixedPenaltyDTW
 
+"""
+    (d::FixPenDTW)(S1::Vector{T}, S2::Vector{T}) where {T}
+
+Computes the Fixed Penalty DTW distance between two sequences `S1` and `S2`.
+
+# Arguments
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+
+# Returns
+- `Float64`: The computed Fixed Penalty DTW distance.
+"""
 function (d::FixPenDTW)(
     S1::Vector{T}, S2::Vector{T}
 ) where {T}
@@ -124,6 +182,13 @@ function (d::FixPenDTW)(
     end
 end
 
+"""
+    (d::FixPenDTW)(S1::Nothing, S2::Vector{T}) where {T}
+    (d::FixPenDTW)(S1::Vector{T}, S2::Nothing) where {T}
+    (d::FixPenDTW)(S1::Nothing, S2::Nothing)
+
+Computes the Fixed Penalty DTW distance when one or both inputs are `nothing`.
+"""
 function (d::FixPenDTW)(
     S1::Nothing, S2::Vector{T}
 ) where {T}
@@ -140,6 +205,16 @@ end
 (d::FixPenDTW)(S1::Nothing, S2::Nothing) = 0.0#
 
 
+"""
+    print_info(d::Union{FixPenDTW}, S1::Vector{T}, S2::Vector{T}) where {T}
+
+Prints information about the optimal alignment of two sequences based on Fixed Penalty DTW distance.
+
+# Arguments
+- `d::Union{FixPenDTW}`: The Fixed Penalty DTW distance metric.
+- `S1::Vector{T}`: The first sequence.
+- `S2::Vector{T}`: The second sequence.
+"""
 function print_info(
     d::Union{FixPenDTW},
     S1::Vector{T}, S2::Vector{T}
@@ -189,3 +264,5 @@ function print_info(
         i_tmp, j_tmp = (i, j)
     end
 end
+
+
