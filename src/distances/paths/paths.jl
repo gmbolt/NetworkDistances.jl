@@ -26,7 +26,7 @@ struct FastLCS <: Metric
     curr_row::Vector{Int}
     prev_row::Vector{Int}
     function FastLCS(K::Int)
-        new(zeros(Int, K), zeros(Int, K))
+        new(zeros(Int, K + 1), zeros(Int, K + 1))
     end
 end
 
